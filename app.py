@@ -54,13 +54,10 @@ class Generator(nn.Module):
 def load_model():
     """Loads the pre-trained generator model and caches it."""
     # --- IMPORTANT ---
-    # UPDATE THIS PATH to point to the model file trained with the NEW generator.
-    model_path = 'G_epoch_14.pt' # e.g., './checkpoints/G_epoch_30.pt'
+    # This path must be relative to the root of your repository
+    # to work on Render.
+    model_path = 'G_epoch_14.pt'
     # --- IMPORTANT ---
-
-    if 'update_model_path' in model_path:
-        st.error("Please update the 'model_path' in 'app.py' to your trained model file.")
-        return None
 
     try:
         model = Generator()
