@@ -3,6 +3,7 @@ from PIL import Image
 import numpy as np
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 
 # Layers helper from your training script
 class ConvBNReLU(nn.Sequential):
@@ -13,38 +14,43 @@ class ConvBNReLU(nn.Sequential):
             nn.ReLU(inplace=True),
         )
 
-# Updated Generator model to match your new training script
+# Updated Generator model to match your new trainer.py
 class Generator(nn.Module):
-    """G(z, y) → 28×28 grayscale image of digit *y*."""
-    def __init__(self, latent_dim=100, embed_dim=50, num_classes=10):
+    """G(z, y) → 28×28 grayscale image conditioned on digit *y* (one‑hot).
+    """
+    def __init__(self, latent_dim=100, num_classes=10):
         super().__init__()
-        self.label_emb = nn.Embedding(num_classes, embed_dim)
+        self.latent_dim = latent_dim
 
         self.project = nn.Sequential(
-            nn.Linear(latent_dim + embed_dim, 256 * 7 * 7),
+            nn.Linear(latent_dim + num_classes, 256 * 7 * 7),
             nn.BatchNorm1d(256 * 7 * 7),
-            nn.ReLU(True),
+            nn.LeakyReLU(0.2, inplace=True),
         )
-
         self.upsample14 = nn.Sequential(
-            nn.ConvTranspose2d(256, 128, 4, 2, 1),  # 7→14
+            nn.ConvTranspose2d(256, 128, 4, 2, 1),
             nn.BatchNorm2d(128),
-            nn.ReLU(True),
-            ConvBNReLU(128, 128),                   # extra conv
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(128, 128, 3, 1, 1),
+            nn.BatchNorm2d(128),
+            nn.LeakyReLU(0.2, inplace=True),
         )
         self.upsample28 = nn.Sequential(
-            nn.ConvTranspose2d(128, 64, 4, 2, 1),   # 14→28
+            nn.ConvTranspose2d(128, 64, 4, 2, 1),
             nn.BatchNorm2d(64),
-            nn.ReLU(True),
-            ConvBNReLU(64, 64),                     # extra conv
+            nn.LeakyReLU(0.2, inplace=True),
+            nn.Conv2d(64, 64, 3, 1, 1),
+            nn.BatchNorm2d(64),
+            nn.LeakyReLU(0.2, inplace=True),
         )
         self.to_img = nn.Sequential(
             nn.Conv2d(64, 1, 3, 1, 1),
             nn.Tanh(),
         )
 
-    def forward(self, z: torch.Tensor, y: torch.Tensor):
-        x = torch.cat([z, self.label_emb(y)], dim=1)
+    def forward(self, z: torch.Tensor, y: torch.Tensor) -> torch.Tensor:  # (B, L), (B,)
+        y_onehot = F.one_hot(y, 10).float()
+        x = torch.cat([z, y_onehot], dim=1)
         x = self.project(x).view(-1, 256, 7, 7)
         x = self.upsample14(x)
         x = self.upsample28(x)
