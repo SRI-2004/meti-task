@@ -55,7 +55,7 @@ def load_model():
     """Loads the pre-trained generator model and caches it."""
     # --- IMPORTANT ---
     # UPDATE THIS PATH to point to the model file trained with the NEW generator.
-    model_path = '/home/srinivasan/FIles/meti/checkpoints/G_epoch_6.pt' # e.g., './checkpoints/G_epoch_30.pt'
+    model_path = 'G_epoch_14.pt' # e.g., './checkpoints/G_epoch_30.pt'
     # --- IMPORTANT ---
 
     if 'update_model_path' in model_path:
