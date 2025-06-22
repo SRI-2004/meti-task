@@ -62,7 +62,7 @@ def load_model():
     # --- IMPORTANT ---
     # This path must be relative to the root of your repository
     # to work on Render.
-    model_path = 'G_epoch_14.pt'
+    model_path = 'G_epoch_29.pt'
     # --- IMPORTANT ---
 
     try:
